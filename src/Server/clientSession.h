@@ -1,6 +1,7 @@
 #include <boost\asio.hpp>
 #include <iostream>
 using boost::asio::ip::tcp;
+
 class ClientSession
 {
 public:
@@ -16,6 +17,7 @@ public:
 private:
     tcp::socket socket;
     boost::asio::streambuf buffer;
+    std::string response = "Ack!";
 
     void readMessage()
     {
@@ -28,7 +30,6 @@ private:
                 if (!error)
                 {
                     processMessage();
-                    readMessage();
                 }
             }
         );
@@ -40,8 +41,15 @@ private:
         std::string message;
         std::getline(input, message);
         std::cout << "Client sent: " << message << '\n';
-        std::string response = "Ack!";
-        boost::asio::async_write(socket, boost::asio::buffer(response));
+        boost::asio::async_write(socket, boost::asio::buffer(response), 
+        [this]( boost::system::error_code error, size_t bytes)
+        {
+            if (!error)
+            {
+                readMessage();
+            }
+        });
+        
     }
 
 };
